@@ -1,16 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { User, createUser, getUserByUsername } from "@/api/UserApi";
-import Button from "@/components/Button";
+import React, { useState } from "react";
 import Image from "next/image";
+import {
+  User as UserIcon,
+  Lock,
+  AlertCircle,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
+import { User, createUser, getUserByUsername } from "@/api/UserApi";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 
 interface RegisterCardProps {
   onRegisterSuccess: (user: User) => void;
   onToggleMode: () => void;
 }
 
-export default function RegisterCard({ onRegisterSuccess, onToggleMode }: RegisterCardProps) {
+export default function RegisterCard({
+  onRegisterSuccess,
+  onToggleMode,
+}: RegisterCardProps) {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
@@ -100,131 +113,176 @@ export default function RegisterCard({ onRegisterSuccess, onToggleMode }: Regist
   };
 
   return (
-    <div className="bg-sentry-card w-full max-w-[480px] p-8 rounded-lg shadow-lg border border-black/20 flex flex-col gap-6 animate-in fade-in duration-200">
-      
-      <div className="flex flex-col items-center">
-        <Image src="/logo.png" alt="Sentry Logo" width={64} height={64} className="object-contain mb-3" />
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-100">Create an account</h2>
-        <p className="text-sentry-text-muted text-sm mt-1.5 text-center">
-          Step {registerStep} of 2 - Setup your profile
-        </p>
+    <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-2xl shadow-black/60 flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-200 select-none">
+      {/* Brand Header */}
+      <div className="flex flex-col items-center text-center gap-2">
+        <div className="w-16 h-16 rounded-2xl bg-secondary/80 border border-border flex items-center justify-center mb-1 shadow-sm p-2">
+          <Image
+            src="/logo.png"
+            alt="Sentry Logo"
+            width={44}
+            height={44}
+            unoptimized
+            className="object-contain"
+          />
+        </div>
+
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          Create Sentry Account
+        </h2>
+
+        {/* Step Indicator */}
+        <div className="flex items-center gap-2 mt-1">
+          <span
+            className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
+              registerStep === 1
+                ? "bg-primary text-white"
+                : "bg-emerald-950 text-emerald-400 border border-emerald-800"
+            }`}
+          >
+            1
+          </span>
+          <div className="w-8 h-[2px] bg-border" />
+          <span
+            className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center transition-colors ${
+              registerStep === 2
+                ? "bg-primary text-white"
+                : "bg-secondary text-muted-foreground"
+            }`}
+          >
+            2
+          </span>
+        </div>
       </div>
 
+      {/* Error / Success Alerts */}
       {errorMsg && (
-        <div className="bg-[#F23F43]/10 border border-[#F23F43]/30 text-[#F23F43] rounded p-3 text-xs font-semibold leading-relaxed">
-          {errorMsg}
+        <div className="bg-destructive/10 border border-destructive/30 text-red-400 rounded-xl p-3.5 text-xs flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 shrink-0 text-destructive" />
+          <span>{errorMsg}</span>
         </div>
       )}
       {successMsg && (
-        <div className="bg-[#23A55A]/10 border border-[#23A55A]/30 text-[#23A55A] rounded p-3 text-xs font-semibold">
-          {successMsg}
+        <div className="bg-emerald-950/40 border border-emerald-800/40 text-emerald-400 rounded-xl p-3.5 text-xs flex items-center gap-2.5">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+          <span>{successMsg}</span>
         </div>
       )}
 
-      <form onSubmit={registerStep === 1 ? handleRegisterStep1 : handleRegisterSubmit} className="flex flex-col gap-4">
-        {registerStep === 1 ? (
-          /* Step 1: Credentials Setup */
-          <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-150">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sentry-text-muted text-[11px] font-bold uppercase tracking-wider">
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. jdizzle"
-                required
-                className="bg-sentry-input w-full p-2.5 rounded border border-black/30 focus:border-sentry-primary focus:outline-none text-zinc-100 placeholder-zinc-500 text-sm transition-all"
-              />
-            </div>
+      {/* Step 1: Credentials Form */}
+      {registerStep === 1 && (
+        <form onSubmit={handleRegisterStep1} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Username
+            </label>
+            <Input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="e.g. jdizzle"
+              icon={<UserIcon className="w-4 h-4" />}
+              required
+              autoFocus
+            />
+          </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sentry-text-muted text-[11px] font-bold uppercase tracking-wider">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="bg-sentry-input w-full p-2.5 rounded border border-black/30 focus:border-sentry-primary focus:outline-none text-zinc-100 placeholder-zinc-500 text-sm transition-all"
-              />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Password
+            </label>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              icon={<Lock className="w-4 h-4" />}
+              required
+            />
+          </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sentry-text-muted text-[11px] font-bold uppercase tracking-wider">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="bg-sentry-input w-full p-2.5 rounded border border-black/30 focus:border-sentry-primary focus:outline-none text-zinc-100 placeholder-zinc-500 text-sm transition-all"
-              />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Confirm Password
+            </label>
+            <Input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm password"
+              icon={<Lock className="w-4 h-4" />}
+              required
+            />
+          </div>
 
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            isLoading={isLoading}
+            icon={<ArrowRight className="w-4 h-4" />}
+            className="w-full mt-2"
+          >
+            Continue
+          </Button>
+        </form>
+      )}
+
+      {/* Step 2: Display Profile Form */}
+      {registerStep === 2 && (
+        <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
+          <div className="p-3 bg-secondary/50 rounded-xl border border-border/80 text-xs flex items-center justify-between">
+            <span className="text-muted-foreground">Account handle:</span>
+            <span className="font-mono text-primary font-bold">@{username}</span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Display Name
+            </label>
+            <Input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="e.g. Jayden Dowell"
+              icon={<Sparkles className="w-4 h-4" />}
+              required
+              autoFocus
+            />
+          </div>
+
+          <div className="flex items-center gap-3 mt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              onClick={() => setRegisterStep(1)}
+              icon={<ArrowLeft className="w-4 h-4" />}
+              disabled={isLoading}
+            >
+              Back
+            </Button>
             <Button
               type="submit"
               variant="primary"
+              size="md"
               isLoading={isLoading}
-              className="w-full mt-2"
+              className="flex-1"
             >
-              Continue
+              Create Account
             </Button>
           </div>
-        ) : (
-          /* Step 2: Profile Setup */
-          <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-150">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sentry-text-muted text-[11px] font-bold uppercase tracking-wider">
-                Display Name
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="e.g. Jose GOAT"
-                required
-                autoFocus
-                className="bg-sentry-input w-full p-2.5 rounded border border-black/30 focus:border-sentry-primary focus:outline-none text-zinc-100 placeholder-zinc-500 text-sm transition-all"
-              />
-              <p className="text-[11px] text-sentry-text-muted mt-1">This is how you will be seen by others. You can use pretty much any characters.</p>
-            </div>
+        </form>
+      )}
 
-            <div className="flex gap-3 mt-2 w-full">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setRegisterStep(1)}
-                disabled={isLoading}
-                className="flex-1"
-              >
-                Back
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                isLoading={isLoading}
-                className="flex-1"
-              >
-                Create Account
-              </Button>
-            </div>
-          </div>
-        )}
-      </form>
-
-      <div className="text-sm mt-1 text-center sm:text-left">
-        <span className="text-sentry-text-muted text-xs">Already have an account? </span>
+      {/* Switch Mode Footer */}
+      <div className="flex items-center justify-between text-xs pt-4 border-t border-border/70">
+        <span className="text-muted-foreground">Already have an account?</span>
         <button
           onClick={onToggleMode}
-          className="text-sentry-text-link hover:underline text-xs font-semibold cursor-pointer"
+          className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
         >
-          Log In
+          Sign in
         </button>
       </div>
     </div>
