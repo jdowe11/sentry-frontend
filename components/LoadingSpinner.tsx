@@ -1,31 +1,35 @@
 "use client";
 
+import React from "react";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/utils/cn";
+
 interface LoadingSpinnerProps {
   message?: string;
   fullPage?: boolean;
 }
 
 export default function LoadingSpinner({
-  message = "Loading Sentry secure nodes...",
+  message = "Loading Sentry workspace...",
   fullPage = false,
 }: LoadingSpinnerProps) {
   const containerClass = fullPage
-    ? "fixed inset-0 bg-sentry-bg/80 backdrop-blur-sm z-50"
-    : "w-full h-full min-h-[300px]";
+    ? "fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+    : "w-full h-full min-h-[260px]";
 
   return (
-    <div className={`flex flex-col items-center justify-center gap-4 ${containerClass} animate-in fade-in duration-200`}>
-      <div className="relative flex items-center justify-center">
-        {/* Animated outer ring */}
-        <div className="w-12 h-12 rounded-full border-[3px] border-zinc-800 animate-pulse"></div>
-        {/* Spinning indicator */}
-        <div className="absolute w-12 h-12 rounded-full border-[3px] border-t-sentry-primary border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
-        {/* Small center pulse dot */}
-        <div className="absolute w-3 h-3 rounded-full bg-sentry-primary animate-ping"></div>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3 select-none animate-in fade-in duration-200",
+        containerClass
+      )}
+    >
+      <div className="w-10 h-10 rounded-xl bg-secondary/80 border border-border flex items-center justify-center text-primary shadow-sm">
+        <Loader2 className="w-5 h-5 animate-spin" />
       </div>
-      
+
       {message && (
-        <span className="text-xs font-bold text-sentry-text-muted uppercase tracking-widest select-none animate-pulse">
+        <span className="text-xs font-semibold text-muted-foreground tracking-wide">
           {message}
         </span>
       )}

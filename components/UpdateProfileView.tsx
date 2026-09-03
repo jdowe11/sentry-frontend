@@ -1,14 +1,23 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
+import {
+  User as UserIcon,
+  CheckCircle2,
+  Calendar,
+  Edit2,
+  Check,
+  X,
+} from "lucide-react";
 import { useAuth } from "@/store/hooks";
 import { updateDisplayName, updateUsername, getMe, User } from "@/api/UserApi";
 import ConfirmModal from "@/components/ConfirmModal";
 import { useDataLoader } from "@/hooks/useDataLoader";
 import SkeletonLoader from "@/components/SkeletonLoader";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
+import Avatar from "@/components/ui/Avatar";
+import Badge from "@/components/ui/Badge";
 import { getErrorMessage } from "@/utils/error";
-import Image from "next/image";
 
 function InlineEditField({
   label,
@@ -36,10 +45,7 @@ function InlineEditField({
     setDraft(currentValue);
     setError(null);
     setIsEditing(true);
-  };
-
-  const handleBlur = () => {
-    if (!showConfirm) handleCancel();
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   const handleCancel = () => {
@@ -102,61 +108,73 @@ function InlineEditField({
         />
       )}
 
-      <div className="flex flex-col gap-1">
-        <label className="text-sentry-text-muted text-[11px] font-bold uppercase tracking-wider select-none">
-          {label}
-        </label>
+      <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-secondary/30 border border-border/80 transition-colors">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">
+            {label}
+          </label>
+          {!isEditing && (
+            <button
+              onClick={startEditing}
+              className="text-xs text-primary hover:text-primary-hover flex items-center gap-1 font-medium transition-colors cursor-pointer"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Edit</span>
+            </button>
+          )}
+        </div>
 
-        <input
-          ref={inputRef}
-          type="text"
-          value={isEditing ? draft : currentValue}
-          readOnly={!isEditing}
-          onFocus={startEditing}
-          onBlur={isEditing ? handleBlur : undefined}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSaveClick();
-            if (e.key === "Escape") handleCancel();
-          }}
-          className={`w-full px-3 py-2 rounded border text-sm transition-all duration-150 outline-none ${
-            isEditing
-              ? "bg-sentry-input border-sentry-primary text-zinc-100"
-              : "bg-transparent border-transparent text-zinc-400 cursor-pointer hover:border-zinc-600 hover:text-zinc-200 hover:bg-zinc-800/30"
-          }`}
-        />
+        {isEditing ? (
+          <div className="flex flex-col gap-2 mt-1">
+            <input
+              ref={inputRef}
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveClick();
+                if (e.key === "Escape") handleCancel();
+              }}
+              className="w-full px-3 py-2 rounded-lg bg-input border border-primary text-foreground text-sm outline-none focus:ring-1 focus:ring-primary"
+            />
 
-        {error && (
-          <p className="text-[#F23F43] text-[11px] font-semibold mt-0.5">{error}</p>
+            {error && (
+              <p className="text-destructive text-xs font-medium">{error}</p>
+            )}
+
+            <div className="flex items-center justify-end gap-2 mt-1">
+              <Button
+                type="button"
+                variant="secondary"
+                size="xs"
+                onClick={handleCancel}
+                disabled={isLoading}
+                icon={<X className="w-3.5 h-3.5" />}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="xs"
+                onClick={handleSaveClick}
+                isLoading={isLoading}
+                icon={<Check className="w-3.5 h-3.5" />}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-foreground">
+              {currentValue || "Not set"}
+            </span>
+          </div>
         )}
 
         {hint && !isEditing && (
-          <p className="text-[11px] text-sentry-text-muted">{hint}</p>
-        )}
-
-        {isEditing && (
-          <div className="flex gap-2 justify-end mt-1 animate-in fade-in slide-in-from-top-1 duration-150">
-            <Button
-              type="button"
-              variant="danger-outline"
-              size="xs"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleCancel}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="success-outline"
-              size="xs"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleSaveClick}
-              isLoading={isLoading}
-            >
-              Save
-            </Button>
-          </div>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>
         )}
       </div>
     </>
@@ -172,7 +190,11 @@ export default function UpdateProfileView() {
     return getMe(user.id);
   }, [user]);
 
-  const { data: activeUser, isLoading, setData: setActiveUser } = useDataLoader(fetchProfile, [user]);
+  const {
+    data: activeUser,
+    isLoading,
+    setData: setActiveUser,
+  } = useDataLoader(fetchProfile, [user]);
 
   if (!user) return null;
 
@@ -180,19 +202,19 @@ export default function UpdateProfileView() {
     const updated: User = await updateUsername(user.id, newUsername);
     updateUser(updated);
     setActiveUser(updated);
-    flashSuccess();
+    flashSuccess("Username updated successfully.");
   };
 
   const handleSaveDisplayName = async (newDisplayName: string) => {
     const updated: User = await updateDisplayName(user.id, newDisplayName);
     updateUser(updated);
     setActiveUser(updated);
-    flashSuccess();
+    flashSuccess("Display name updated successfully.");
   };
 
-  const flashSuccess = () => {
-    setGlobalSuccess("Saved!");
-    setTimeout(() => setGlobalSuccess(null), 2500);
+  const flashSuccess = (msg: string) => {
+    setGlobalSuccess(msg);
+    setTimeout(() => setGlobalSuccess(null), 3000);
   };
 
   const validateUsername = (val: string): string | null => {
@@ -211,55 +233,89 @@ export default function UpdateProfileView() {
 
   const resolvedUser = activeUser || user;
 
+  const formatDate = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
-    <div className="bg-sentry-card w-full max-w-[480px] p-8 rounded-lg shadow-lg border border-black/20 flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-200">
-      {isLoading || !resolvedUser ? (
-        <div className="flex flex-col gap-6 w-full py-4 animate-in fade-in duration-200">
-          <div className="flex flex-col items-center mb-2">
-            <div className="w-16 h-16 bg-zinc-800 rounded-full animate-pulse mb-3"></div>
-            <div className="h-5 bg-zinc-800 rounded w-36 animate-pulse"></div>
+    <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 select-none animate-in fade-in duration-200">
+      {/* Header Profile Card */}
+      <div className="bg-card border border-border rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <Avatar
+            fallback={resolvedUser.displayName || resolvedUser.username}
+            size="lg"
+            status="online"
+          />
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-foreground">
+                {resolvedUser.displayName || resolvedUser.username}
+              </h2>
+              <Badge variant="emerald">Active</Badge>
+            </div>
           </div>
-          <SkeletonLoader type="list" count={2} />
         </div>
-      ) : (
-        <>
-          <div className="flex flex-col items-center">
-            <Image src="/logo.png" alt="Sentry Logo" width={64} height={64} className="object-contain mb-3" />
-            <h2 className="text-2xl font-bold tracking-tight text-zinc-100">Profile Settings</h2>
-            <p className="text-sentry-text-muted text-sm mt-1.5 text-center">
-              Click a field to edit it.
-            </p>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/50 px-3 py-1.5 rounded-lg border border-border/70">
+          <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+          <span>Member since {formatDate(resolvedUser.createdAt)}</span>
+        </div>
+      </div>
+
+      {globalSuccess && (
+        <div className="bg-emerald-950/40 border border-emerald-800/40 text-emerald-400 rounded-xl p-3.5 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in duration-150 shadow-sm">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{globalSuccess}</span>
+        </div>
+      )}
+
+      {/* Main Settings Sections */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left 2 Cols: Editable fields */}
+        <div className="md:col-span-2 bg-card border border-border rounded-2xl p-6 flex flex-col gap-5 shadow-sm">
+          <div className="flex items-center gap-2 pb-3 border-b border-border/80 text-sm font-semibold text-foreground">
+            <UserIcon className="w-4 h-4 text-primary" />
+            <span>Profile Identity</span>
           </div>
 
-          {globalSuccess && (
-            <div className="bg-[#23A55A]/10 border border-[#23A55A]/30 text-[#23A55A] rounded p-2.5 text-xs font-semibold text-center animate-in fade-in duration-150">
-              ✓ {globalSuccess}
+          {isLoading ? (
+            <SkeletonLoader type="list" count={2} />
+          ) : (
+            <div className="flex flex-col gap-4">
+              <InlineEditField
+                label="Username"
+                currentValue={resolvedUser.username}
+                hint="Unique handle used for friend requests and identification."
+                onSave={handleSaveUsername}
+                validate={validateUsername}
+                confirmPrompt={{
+                  title: "Change Username?",
+                  description:
+                    "Changing your username will affect how others find you on Sentry. This change takes effect immediately.",
+                }}
+              />
+
+              <InlineEditField
+                label="Display Name"
+                currentValue={resolvedUser.displayName}
+                hint="Your public name visible to other Sentry users and servers."
+                onSave={handleSaveDisplayName}
+                validate={validateDisplayName}
+              />
             </div>
           )}
+        </div>
 
-          <div className="flex flex-col gap-5">
-            <InlineEditField
-              label="Username"
-              currentValue={resolvedUser.username}
-              hint="Alphanumeric characters, hyphens, and underscores only. Must be unique."
-              onSave={handleSaveUsername}
-              validate={validateUsername}
-              confirmPrompt={{
-                title: "Are you sure?",
-                description: "Changing your username cannot be undone. Others may not be able to find you by your old username.",
-              }}
-            />
-
-            <InlineEditField
-              label="Display Name"
-              currentValue={resolvedUser.displayName}
-              hint="Your public display name. Can contain any characters up to 50."
-              onSave={handleSaveDisplayName}
-              validate={validateDisplayName}
-            />
-          </div>
-        </>
-      )}
+      </div>
     </div>
   );
 }

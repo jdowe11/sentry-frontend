@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Sentry",
-  description: "Your secure Sentry workspace",
+  description: "Secure, Private, and Encrypted Communication",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-sentry-bg text-white font-sans">
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans selection:bg-primary/20 selection:text-emerald-300">
         <StoreProvider>{children}</StoreProvider>
       </body>
     </html>

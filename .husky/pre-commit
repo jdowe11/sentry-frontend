@@ -1,6 +1,4 @@
 #!/bin/sh
-
-cd frontend
 echo "Running eslint..."
 npm run lint
 echo "Running typecheck..."

@@ -1,66 +1,60 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import {
+  Users,
+  Search,
+  Plus,
+  MessageSquare,
+} from "lucide-react";
 import { useAuth } from "@/store/hooks";
-import Image from "next/image";
-import { useState, useEffect } from "react";
+import Avatar from "@/components/ui/Avatar";
+import { getFriends } from "@/api/FriendshipApi";
+import { User } from "@/api/UserApi";
+import { cn } from "@/utils/cn";
 
 export default function Sidebar() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  // Width tracking state
-  const [sidebarWidth, setSidebarWidth] = useState(220);
+  // Width tracking state with resizable drag handle
+  const [sidebarWidth, setSidebarWidth] = useState(240);
   const [isMobile, setIsMobile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [friends, setFriends] = useState<User[]>([]);
+  const [activeChatId, setActiveChatId] = useState<number | null>(null);
 
-  // Handle checking for mobile breakpoint
+  // Check for mobile breakpoint
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
+      setIsMobile(window.innerWidth < 768);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const currentWidth = isMobile ? 80 : sidebarWidth; // This could be improved in the future.
-  const isCollapsed = currentWidth < 160;
+  // Fetch friends for the DM list
+  useEffect(() => {
+    let isMounted = true;
+    if (!user) return;
 
-  const handleLogout = () => {
-    logout();
-    router.push("/login");
-  };
+    getFriends(user.id)
+      .then((data) => {
+        if (isMounted) {
+          setFriends(data || []);
+        }
+      })
+      .catch(() => {});
 
-  const navItems = [
-    {
-      label: "Home",
-      href: "/home",
-      icon: (
-        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-        </svg>
-      ),
-    },
-    {
-      label: "Profile Settings",
-      href: "/profile",
-      icon: (
-        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-        </svg>
-      ),
-    },
-    {
-      label: "Friends List",
-      href: "/friends",
-      icon: (
-        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235A10.107 10.107 0 0112.5 15c2.203 0 4.256.705 5.932 1.905" />
-        </svg>
-      ),
-    },
-  ];
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  const currentWidth = isMobile ? 220 : sidebarWidth;
 
   // Mouse event handlers for resizing
   const startResizing = (mouseDownEvent: React.MouseEvent) => {
@@ -73,10 +67,8 @@ export default function Sidebar() {
       const deltaX = mouseMoveEvent.clientX - startX;
       let newWidth = startWidth + deltaX;
 
-      // Minimum width = 82px
-      // Maximum width = 260px
-      const MIN_WIDTH = 82;
-      const MAX_WIDTH = 260;
+      const MIN_WIDTH = 200;
+      const MAX_WIDTH = 340;
 
       if (newWidth < MIN_WIDTH) newWidth = MIN_WIDTH;
       if (newWidth > MAX_WIDTH) newWidth = MAX_WIDTH;
@@ -93,92 +85,159 @@ export default function Sidebar() {
     document.addEventListener("mouseup", stopDrag);
   };
 
+  const filteredFriends = friends.filter((f) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      f.username?.toLowerCase().includes(q) ||
+      f.displayName?.toLowerCase().includes(q)
+    );
+  });
+
+  const isFriendsActive = pathname === "/friends";
+
   return (
     <aside
-      className="bg-sentry-card relative flex flex-col justify-between border-r border-black/20 p-4 shrink-0 overflow-hidden"
+      className="bg-sidebar-panel relative flex flex-col justify-between border-r border-border h-screen shrink-0 overflow-hidden select-none"
       style={{ width: `${currentWidth}px` }}
     >
-      
-      {/* Resizer handle (Desktop only) with a visible dark boundary line */}
+      {/* Resizer handle (Desktop only) */}
       {!isMobile && (
         <div
           onMouseDown={startResizing}
-          className="hidden md:block absolute top-0 right-0 w-1.5 h-full cursor-col-resize bg-zinc-950/40 border-r border-zinc-800/80 hover:bg-sentry-primary/60 transition-all select-none z-50 animate-in fade-in duration-100"
+          className="hidden md:block absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-primary/50 transition-colors z-40 select-none"
           title="Drag to resize sidebar"
         />
       )}
 
-      <div className="flex flex-col overflow-hidden">
-        
-        {/* Logo - Always left aligned & prevents text wrapping */}
-        <div className="flex items-center mb-6 px-2 justify-start overflow-hidden whitespace-nowrap">
-          <Image src="/logo.png" alt="Sentry Logo" width={32} height={32} className="object-contain shrink-0" />
-          <span className={`font-bold text-lg tracking-wide text-zinc-100 whitespace-nowrap truncate transition-all duration-200 ${
-            isCollapsed ? "ml-0 opacity-0 max-w-0" : "ml-3 opacity-100 max-w-[200px]"
-          }`}>
-            Sentry
+      {/* Top Section: Header & Search */}
+      <div className="flex flex-col p-3 gap-2 overflow-hidden border-b border-border/70">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Conversations
           </span>
+          <button
+            onClick={() => router.push("/friends")}
+            className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-card transition-colors"
+            title="Add Friend or New Message"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Nav Items - Always left aligned & prevents text wrapping */}
-        <nav className="flex flex-col gap-1 w-full overflow-hidden">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <button
-                key={item.href}
-                onClick={() => router.push(item.href)}
-                className={`w-full py-2 px-3 rounded font-medium flex items-center transition-all cursor-pointer justify-start text-left overflow-hidden whitespace-nowrap ${
-                  isActive
-                    ? "bg-zinc-700/50 text-white font-semibold"
-                    : "hover:bg-zinc-800 text-sentry-text-muted hover:text-zinc-200"
-                }`}
-                title={isCollapsed ? item.label : undefined}
-              >
-                {item.icon}
-                <span className={`whitespace-nowrap truncate transition-all duration-200 ${
-                  isCollapsed ? "ml-0 opacity-0 max-w-0" : "ml-3 opacity-100 max-w-[200px]"
-                }`}>
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
+        {/* Quick Search */}
+        <div className="relative flex items-center w-full">
+          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Find a conversation..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-input border border-border text-foreground placeholder:text-muted-foreground/60 text-xs rounded-lg pl-8 pr-2.5 py-1.5 outline-none focus:border-primary transition-colors"
+          />
+        </div>
       </div>
 
-      {/* Session / Logout - Always left aligned & prevents text wrapping */}
-      <div className="flex flex-col mt-6 pt-4 border-t border-black/10 overflow-hidden whitespace-nowrap">
-        
-        <div className={`flex flex-col overflow-hidden whitespace-nowrap transition-all duration-200 ${
-          isCollapsed ? "opacity-0 max-h-0 mb-0" : "opacity-100 max-h-[80px] mb-4"
-        }`}>
-          <span className="text-[10px] text-sentry-text-muted uppercase font-bold tracking-wider mb-2 select-none whitespace-nowrap truncate">
-            Logged in as:
-          </span>
-          <span
-            className="text-sm font-mono text-zinc-300 truncate select-all whitespace-nowrap"
-            title={user?.username}
-          >
-            @{user?.username}
+      {/* Middle Section: Channel / DM List */}
+      <div className="flex-1 overflow-y-auto px-2 py-2 flex flex-col gap-1">
+        {/* Friends Shortcut Button */}
+        <button
+          onClick={() => router.push("/friends")}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer text-left border outline-none focus:outline-none",
+            isFriendsActive
+              ? "bg-card text-foreground border-border/80 shadow-xs"
+              : "text-muted-foreground hover:bg-card/60 hover:text-foreground border-transparent"
+          )}
+        >
+          <div className="w-6 h-6 rounded-md bg-secondary flex items-center justify-center text-primary shrink-0">
+            <Users className="w-3.5 h-3.5" />
+          </div>
+          <span className="truncate flex-1">Friends</span>
+          {friends.length > 0 && (
+            <span className="text-[10px] bg-secondary text-muted-foreground px-1.5 py-0.5 rounded font-mono font-bold">
+              {friends.length}
+            </span>
+          )}
+        </button>
+
+        {/* Direct Messages Subheader */}
+        <div className="flex items-center justify-between px-2 pt-3 pb-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+            Direct Messages
           </span>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-start border border-zinc-600 hover:bg-zinc-700/40 text-zinc-300 py-2 px-3 rounded text-sm font-semibold transition-all active:scale-[0.98] cursor-pointer overflow-hidden whitespace-nowrap"
-          title="Log Out"
+        {/* DM Conversations List */}
+        {filteredFriends.length === 0 ? (
+          <div className="px-3 py-6 text-center text-xs text-muted-foreground flex flex-col items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-muted-foreground/50" />
+            <span>No active chats yet</span>
+            <button
+              onClick={() => router.push("/friends")}
+              className="text-xs text-primary hover:underline font-medium outline-none"
+            >
+              Start one with a friend
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-0.5">
+            {filteredFriends.map((friend) => {
+              const isSelected = activeChatId === friend.id;
+              return (
+                <button
+                  key={friend.id}
+                  onClick={() => {
+                    setActiveChatId(friend.id);
+                    router.push("/home");
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-colors duration-150 cursor-pointer text-left group border outline-none focus:outline-none",
+                    isSelected
+                      ? "bg-card text-foreground border-border/80 font-medium"
+                      : "text-muted-foreground hover:bg-card/50 hover:text-foreground border-transparent"
+                  )}
+                >
+                  <Avatar
+                    fallback={friend.displayName || friend.username}
+                    size="xs"
+                    status="online"
+                  />
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="truncate text-xs font-medium text-foreground">
+                      {friend.displayName || friend.username}
+                    </span>
+                    <span className="truncate text-[10px] text-muted-foreground font-mono">
+                      @{friend.username}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom User Bar */}
+      <div className="p-2.5 border-t border-border/80 bg-sidebar-rail/80 flex items-center justify-between gap-2 shrink-0">
+        <div
+          onClick={() => router.push("/profile")}
+          className="flex items-center gap-2.5 min-w-0 flex-1 p-1 rounded-lg hover:bg-card cursor-pointer transition-colors"
         >
-          {/* Logout icon stays left-aligned */}
-          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-          </svg>
-          <span className={`whitespace-nowrap truncate transition-all duration-200 ${
-            isCollapsed ? "ml-0 opacity-0 max-w-0" : "ml-3 opacity-100 max-w-[200px]"
-          }`}>
-            Log Out
-          </span>
-        </button>
+          <Avatar
+            fallback={user?.displayName || user?.username || "U"}
+            size="sm"
+            status="online"
+          />
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-xs font-semibold text-foreground truncate">
+              {user?.displayName || user?.username}
+            </span>
+            <span className="text-[10px] font-mono text-muted-foreground truncate">
+              @{user?.username}
+            </span>
+          </div>
+        </div>
+
       </div>
     </aside>
   );
