@@ -1,13 +1,10 @@
 "use client";
 
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ShieldCheck,
-  MessageSquare,
   Users,
   Settings,
-  KeyRound,
   Calendar,
   User as UserIcon,
 } from "lucide-react";
@@ -16,7 +13,6 @@ import { getMe } from "@/api/UserApi";
 import { useDataLoader } from "@/hooks/useDataLoader";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import Avatar from "@/components/ui/Avatar";
-import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 
 export default function AuthenticatedView() {

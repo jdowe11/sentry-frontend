@@ -1,8 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { ShieldCheck, Search, Users, MessageSquare, Settings } from "lucide-react";
-import Badge from "@/components/ui/Badge";
+import { Users, MessageSquare, Settings } from "lucide-react";
 
 export default function TopHeader() {
   const pathname = usePathname();

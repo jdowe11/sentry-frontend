@@ -1,12 +1,10 @@
 "use client";
 
-import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   MessageSquare,
   Users,
-  ShieldCheck,
   Settings,
   LogOut,
 } from "lucide-react";

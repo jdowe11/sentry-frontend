@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback } from "react";
 import {
   User as UserIcon,
-  ShieldCheck,
   CheckCircle2,
   Calendar,
-  KeyRound,
   Edit2,
   Check,
   X,
