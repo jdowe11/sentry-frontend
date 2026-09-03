@@ -10,8 +10,7 @@ This is the frontend repository for this.
 - Vite
 - TypeScript
 - Tailwind CSS
-- Gemini API
-
+- Redux State Management Toolkit
 
 ## Setup
 
