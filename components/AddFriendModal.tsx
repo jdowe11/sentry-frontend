@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/store/hooks";
 import { sendFriendRequest } from "@/api/FriendRequestApi";
-import Button from "./Button";
+import Button from "@/components/Button";
 import { getErrorMessage } from "@/utils/error";
 
 interface AddFriendModalProps {

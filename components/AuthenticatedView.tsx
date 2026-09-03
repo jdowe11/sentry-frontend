@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/store/hooks";
 import { getMe } from "@/api/UserApi";
 import { useDataLoader } from "@/hooks/useDataLoader";
-import SkeletonLoader from "./SkeletonLoader";
+import SkeletonLoader from "@/components/SkeletonLoader";
 import Image from "next/image";
 
 export default function AuthenticatedView() {
