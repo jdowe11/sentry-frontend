@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/store/hooks";
 import RegisterCard from "@/components/RegisterCard";
@@ -17,13 +17,13 @@ export default function RegisterPage() {
   if (user) return null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-sentry-bg p-6">
+    <div className="w-full flex items-center justify-center p-4">
       <RegisterCard
         onRegisterSuccess={(newUser) => {
           login(newUser);
           router.push("/home");
         }}
-        onToggleMode={() => router.push("/login")}
+        onToggleMode={() => router.push("/login?view=login")}
       />
     </div>
   );
