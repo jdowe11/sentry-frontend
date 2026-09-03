@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/store/hooks";
 import AuthenticatedView from "@/components/AuthenticatedView";
 
 export default function HomePage() {

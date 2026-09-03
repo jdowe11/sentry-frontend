@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { User } from "@/api/UserApi";
 import { loginUser } from "@/api/LoginApi";
-import Button from "./Button";
+import Button from "@/components/Button";
 import Image from "next/image";
 
 interface LoginCardProps {

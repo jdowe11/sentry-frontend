@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/store/hooks";
 import { updateDisplayName, updateUsername, getMe, User } from "@/api/UserApi";
 import ConfirmModal from "@/components/ConfirmModal";
 import { useDataLoader } from "@/hooks/useDataLoader";
-import SkeletonLoader from "./SkeletonLoader";
-import Button from "./Button";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import Button from "@/components/Button";
 import { getErrorMessage } from "@/utils/error";
 import Image from "next/image";
 

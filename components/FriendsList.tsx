@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/store/hooks";
 import { User } from "@/api/UserApi";
 import {
   getPendingRequests,
@@ -11,10 +11,10 @@ import {
   getFriends,
   removeFriend,
 } from "@/api/FriendshipApi";
-import AddFriendModal from "./AddFriendModal";
-import UnfriendConfirmModal from "./UnfriendConfirmModal";
-import SkeletonLoader from "./SkeletonLoader";
-import Button from "./Button";
+import AddFriendModal from "@/components/AddFriendModal";
+import UnfriendConfirmModal from "@/components/UnfriendConfirmModal";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import Button from "@/components/Button";
 import { getErrorMessage } from "@/utils/error";
 import { useDataLoader } from "@/hooks/useDataLoader";
 

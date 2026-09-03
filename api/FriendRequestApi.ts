@@ -1,5 +1,5 @@
-import { BASE_URL } from "./config";
-import { User } from "./UserApi";
+import { BASE_URL } from "@/api/config";
+import { User } from "@/api/UserApi";
 
 export interface FriendRequest {
   id: number;

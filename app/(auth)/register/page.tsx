@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/store/hooks";
 import RegisterCard from "@/components/RegisterCard";
 
 export default function RegisterPage() {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { User, createUser, getUserByUsername } from "@/api/UserApi";
-import Button from "./Button";
+import Button from "@/components/Button";
 import Image from "next/image";
 
 interface RegisterCardProps {
