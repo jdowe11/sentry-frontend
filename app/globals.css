@@ -110,3 +110,18 @@ body {
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
 }
+
+/* Eliminate white focus ring/border flashes on mouse clicks across all buttons & interactive elements */
+button,
+[role="button"] {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+

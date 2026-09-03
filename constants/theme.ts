@@ -62,9 +62,9 @@ export const THEME_COLORS = {
 } as const;
 
 export const THEME_RADII = {
-  sm: "6px",
-  md: "8px",
-  lg: "12px",
-  xl: "16px",
+  sm: "8px",
+  md: "10px",
+  lg: "14px",
+  xl: "18px",
   full: "9999px",
 } as const;
