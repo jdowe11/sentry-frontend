@@ -6,7 +6,6 @@ import {
   Users,
   Search,
   Plus,
-  Lock,
   MessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/store/hooks";
@@ -211,7 +210,6 @@ export default function Sidebar() {
                       @{friend.username}
                     </span>
                   </div>
-                  <Lock className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary/70 shrink-0 transition-colors" />
                 </button>
               );
             })}
