@@ -82,7 +82,7 @@ export default function AddFriendModal({
           </label>
           <Input
             type="text"
-            placeholder="e.g. jdizzle"
+            placeholder="e.g. username123"
             value={targetUsername}
             onChange={(e) => setTargetUsername(e.target.value)}
             disabled={isLoading || !!status?.success}

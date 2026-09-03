@@ -180,7 +180,7 @@ export default function RegisterCard({
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. jdizzle"
+              placeholder="Enter username"
               icon={<UserIcon className="w-4 h-4" />}
               required
               autoFocus
@@ -244,7 +244,7 @@ export default function RegisterCard({
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="e.g. Jayden Dowell"
+              placeholder="e.g. John Doe"
               icon={<Sparkles className="w-4 h-4" />}
               required
               autoFocus
