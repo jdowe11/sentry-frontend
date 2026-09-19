@@ -108,24 +108,24 @@ function InlineEditField({
         />
       )}
 
-      <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-secondary/30 border border-border/80 transition-colors">
+      <div className="flex flex-col gap-2 p-4 rounded-xl bg-secondary/30 border border-border/80 transition-colors">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none">
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider select-none">
             {label}
           </label>
           {!isEditing && (
             <button
               onClick={startEditing}
-              className="text-xs text-primary hover:text-primary-hover flex items-center gap-1 font-medium transition-colors cursor-pointer"
+              className="text-sm text-primary hover:text-primary-hover flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
             >
-              <Edit2 className="w-3.5 h-3.5" />
+              <Edit2 className="w-4 h-4" />
               <span>Edit</span>
             </button>
           )}
         </div>
 
         {isEditing ? (
-          <div className="flex flex-col gap-2 mt-1">
+          <div className="flex flex-col gap-2.5 mt-1">
             <input
               ref={inputRef}
               type="text"
@@ -135,31 +135,31 @@ function InlineEditField({
                 if (e.key === "Enter") handleSaveClick();
                 if (e.key === "Escape") handleCancel();
               }}
-              className="w-full px-3 py-2 rounded-lg bg-input border border-primary text-foreground text-sm outline-none focus:ring-1 focus:ring-primary"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-input border border-primary text-foreground text-sm sm:text-base outline-none focus:ring-1 focus:ring-primary"
             />
 
             {error && (
               <p className="text-destructive text-xs font-medium">{error}</p>
             )}
 
-            <div className="flex items-center justify-end gap-2 mt-1">
+            <div className="flex items-center justify-end gap-2.5 mt-1">
               <Button
                 type="button"
                 variant="secondary"
-                size="xs"
+                size="sm"
                 onClick={handleCancel}
                 disabled={isLoading}
-                icon={<X className="w-3.5 h-3.5" />}
+                icon={<X className="w-4 h-4" />}
               >
                 Cancel
               </Button>
               <Button
                 type="button"
                 variant="primary"
-                size="xs"
+                size="sm"
                 onClick={handleSaveClick}
                 isLoading={isLoading}
-                icon={<Check className="w-3.5 h-3.5" />}
+                icon={<Check className="w-4 h-4" />}
               >
                 Save
               </Button>
@@ -167,14 +167,14 @@ function InlineEditField({
           </div>
         ) : (
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">
+            <span className="text-base font-semibold text-foreground">
               {currentValue || "Not set"}
             </span>
           </div>
         )}
 
         {hint && !isEditing && (
-          <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>
         )}
       </div>
     </>
@@ -248,32 +248,35 @@ export default function UpdateProfileView() {
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 select-none animate-in fade-in duration-200">
       {/* Header Profile Card */}
-      <div className="bg-card border border-border rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-sm">
-        <div className="flex items-center gap-4">
+      <div className="bg-card border border-border rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-sm">
+        <div className="flex items-center gap-5">
           <Avatar
             fallback={resolvedUser.displayName || resolvedUser.username}
-            size="lg"
+            size="xl"
             status="online"
           />
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-foreground">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                 {resolvedUser.displayName || resolvedUser.username}
               </h2>
-              <Badge variant="emerald">Active</Badge>
+              <Badge variant="emerald" className="text-xs px-2.5 py-0.5">Active</Badge>
             </div>
+            <p className="text-sm font-mono text-muted-foreground">
+              @{resolvedUser.username}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/50 px-3 py-1.5 rounded-lg border border-border/70">
-          <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3.5 py-2 rounded-xl border border-border/70">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
           <span>Member since {formatDate(resolvedUser.createdAt)}</span>
         </div>
       </div>
 
       {globalSuccess && (
-        <div className="bg-emerald-950/40 border border-emerald-800/40 text-emerald-400 rounded-xl p-3.5 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in duration-150 shadow-sm">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="bg-emerald-950/40 border border-emerald-800/40 text-emerald-400 rounded-xl p-4 text-sm font-semibold flex items-center gap-2.5 animate-in fade-in duration-150 shadow-sm">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <span>{globalSuccess}</span>
         </div>
       )}
@@ -281,9 +284,9 @@ export default function UpdateProfileView() {
       {/* Main Settings Sections */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left 2 Cols: Editable fields */}
-        <div className="md:col-span-2 bg-card border border-border rounded-2xl p-6 flex flex-col gap-5 shadow-sm">
-          <div className="flex items-center gap-2 pb-3 border-b border-border/80 text-sm font-semibold text-foreground">
-            <UserIcon className="w-4 h-4 text-primary" />
+        <div className="md:col-span-3 bg-card border border-border rounded-2xl p-6 sm:p-7 flex flex-col gap-6 shadow-sm">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-border/80 text-base font-semibold text-foreground">
+            <UserIcon className="w-5 h-5 text-primary" />
             <span>Profile Identity</span>
           </div>
 

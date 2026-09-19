@@ -13,8 +13,9 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/store/hooks";
+import { useAuth, useChat } from "@/store/hooks";
 import { User } from "@/api/UserApi";
+import { getOrCreateDirectChat } from "@/api/ChatApi";
 import {
   getPendingRequests,
   updateFriendRequestStatus,
@@ -38,9 +39,11 @@ type TabType = "friends" | "incoming" | "outgoing";
 
 export default function FriendsList() {
   const { user } = useAuth();
+  const { openChat } = useChat();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("friends");
   const [filterQuery, setFilterQuery] = useState("");
+  const [startingChatFriendId, setStartingChatFriendId] = useState<number | null>(null);
 
   // Modal visibility states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -115,6 +118,21 @@ export default function FriendsList() {
     }
   };
 
+  // Handle starting/opening direct chat with a friend
+  const handleStartChat = async (friend: User) => {
+    if (!user || startingChatFriendId !== null) return;
+    setStartingChatFriendId(friend.id);
+    try {
+      const chat = await getOrCreateDirectChat(user.id, friend.id);
+      openChat(chat);
+      router.push("/home");
+    } catch (err: unknown) {
+      alert(getErrorMessage(err));
+    } finally {
+      setStartingChatFriendId(null);
+    }
+  };
+
   if (!user) return null;
 
   const filteredFriends = friends.filter((f) => {
@@ -130,11 +148,11 @@ export default function FriendsList() {
       {/* Top Action Bar & Segmented Tabs */}
       <div className="bg-card border border-border rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
         {/* Tabs */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setActiveTab("friends")}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer flex items-center gap-2 border",
+              "px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors duration-150 cursor-pointer flex items-center gap-2 border",
               activeTab === "friends"
                 ? "bg-secondary text-foreground border-border shadow-xs"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-transparent"
@@ -142,7 +160,7 @@ export default function FriendsList() {
           >
             <span>All Friends</span>
             {friends.length > 0 && (
-              <Badge variant="default" className="text-[10px] py-0 px-1.5">
+              <Badge variant="default" className="text-xs py-0.5 px-2">
                 {friends.length}
               </Badge>
             )}
@@ -151,7 +169,7 @@ export default function FriendsList() {
           <button
             onClick={() => setActiveTab("incoming")}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer flex items-center gap-2 border",
+              "px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors duration-150 cursor-pointer flex items-center gap-2 border",
               activeTab === "incoming"
                 ? "bg-secondary text-foreground border-border shadow-xs"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-transparent"
@@ -159,7 +177,7 @@ export default function FriendsList() {
           >
             <span>Incoming</span>
             {incomingRequests.length > 0 && (
-              <Badge variant="destructive" className="text-[10px] py-0 px-1.5">
+              <Badge variant="destructive" className="text-xs py-0.5 px-2">
                 {incomingRequests.length}
               </Badge>
             )}
@@ -168,7 +186,7 @@ export default function FriendsList() {
           <button
             onClick={() => setActiveTab("outgoing")}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer flex items-center gap-2 border",
+              "px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors duration-150 cursor-pointer flex items-center gap-2 border",
               activeTab === "outgoing"
                 ? "bg-secondary text-foreground border-border shadow-xs"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-transparent"
@@ -176,7 +194,7 @@ export default function FriendsList() {
           >
             <span>Outgoing</span>
             {outgoingRequests.length > 0 && (
-              <Badge variant="default" className="text-[10px] py-0 px-1.5">
+              <Badge variant="default" className="text-xs py-0.5 px-2">
                 {outgoingRequests.length}
               </Badge>
             )}
@@ -187,13 +205,13 @@ export default function FriendsList() {
         <div className="flex items-center gap-2.5 w-full sm:w-auto">
           {isRefreshing && (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
-              <RefreshCw className="w-3 h-3 animate-spin text-primary" />
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
               <span>Syncing</span>
             </span>
           )}
           <Button
             variant="primary"
-            size="sm"
+            size="md"
             onClick={() => setIsAddModalOpen(true)}
             icon={<UserPlus className="w-4 h-4" />}
             className="w-full sm:w-auto"
@@ -204,7 +222,7 @@ export default function FriendsList() {
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-card border border-border rounded-xl p-5 flex-1 flex flex-col gap-4 shadow-sm min-h-[400px]">
+      <div className="bg-card border border-border rounded-xl p-5 sm:p-6 flex-1 flex flex-col gap-4 shadow-sm min-h-[400px]">
         {/* Search bar inside friends tab */}
         {activeTab === "friends" && friends.length > 0 && (
           <div className="w-full max-w-sm pb-1">
@@ -229,57 +247,59 @@ export default function FriendsList() {
               <div className="flex flex-col gap-2 flex-1">
                 {friends.length === 0 ? (
                   <div className="flex flex-col items-center justify-center flex-1 text-center py-16">
-                    <div className="w-14 h-14 rounded-2xl bg-secondary border border-border flex items-center justify-center text-muted-foreground mb-4 shadow-sm">
-                      <Users className="w-6 h-6 text-primary" />
+                    <div className="w-16 h-16 rounded-2xl bg-secondary border border-border flex items-center justify-center text-muted-foreground mb-4 shadow-sm">
+                      <Users className="w-7 h-7 text-primary" />
                     </div>
-                    <h3 className="text-foreground font-semibold text-base">
+                    <h3 className="text-foreground font-bold text-lg">
                       No friends added yet
                     </h3>
-                    <p className="text-muted-foreground text-xs mt-1.5 max-w-xs leading-relaxed">
+                    <p className="text-muted-foreground text-sm mt-1.5 max-w-sm leading-relaxed">
                       Connect with others by clicking the Add Friend button above. All conversations are secured with end-to-end encryption.
                     </p>
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="md"
                       onClick={() => setIsAddModalOpen(true)}
                       icon={<UserPlus className="w-4 h-4" />}
-                      className="mt-4"
+                      className="mt-5"
                     >
                       Find Friends
                     </Button>
                   </div>
                 ) : filteredFriends.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground text-xs">
+                  <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground text-sm">
                     <p>No friends match &ldquo;{filterQuery}&rdquo;</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {filteredFriends.map((friend) => (
                       <div
                         key={friend.id}
-                        className="bg-secondary/40 hover:bg-secondary/70 border border-border/80 rounded-xl p-3 flex items-center justify-between gap-3 transition-colors"
+                        className="bg-secondary/40 hover:bg-secondary/70 border border-border/80 rounded-xl p-3.5 flex items-center justify-between gap-3.5 transition-colors"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex items-center gap-3.5 min-w-0">
                           <Avatar
                             fallback={friend.displayName || friend.username}
                             size="md"
                             status="online"
                           />
                           <div className="flex flex-col min-w-0">
-                            <span className="text-sm font-semibold text-foreground truncate">
+                            <span className="text-base font-semibold text-foreground truncate">
                               {friend.displayName || "Anonymous User"}
                             </span>
-                            <span className="text-xs text-muted-foreground font-mono truncate">
+                            <span className="text-sm text-muted-foreground font-mono truncate">
                               @{friend.username}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-2 shrink-0">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => router.push("/home")}
+                            onClick={() => handleStartChat(friend)}
+                            isLoading={startingChatFriendId === friend.id}
+                            disabled={startingChatFriendId !== null}
                             title="Open direct message"
                           >
                             <MessageSquare className="w-4 h-4 text-muted-foreground hover:text-primary" />
@@ -291,7 +311,7 @@ export default function FriendsList() {
                             disabled={
                               processingActionId !== null || isUnfriendLoading
                             }
-                            icon={<UserX className="w-3.5 h-3.5" />}
+                            icon={<UserX className="w-4 h-4" />}
                           >
                             Unfriend
                           </Button>
@@ -308,42 +328,42 @@ export default function FriendsList() {
               <div className="flex flex-col gap-2 flex-1">
                 {incomingRequests.length === 0 ? (
                   <div className="flex flex-col items-center justify-center flex-1 text-center py-16">
-                    <div className="w-14 h-14 rounded-2xl bg-secondary border border-border flex items-center justify-center text-muted-foreground mb-4 shadow-sm">
-                      <UserCheck className="w-6 h-6 text-primary" />
+                    <div className="w-16 h-16 rounded-2xl bg-secondary border border-border flex items-center justify-center text-muted-foreground mb-4 shadow-sm">
+                      <UserCheck className="w-7 h-7 text-primary" />
                     </div>
-                    <h3 className="text-foreground font-semibold text-base">
+                    <h3 className="text-foreground font-bold text-lg">
                       No incoming requests
                     </h3>
-                    <p className="text-muted-foreground text-xs mt-1.5 max-w-xs">
+                    <p className="text-muted-foreground text-sm mt-1.5 max-w-sm">
                       When someone sends you a friend request on Sentry, it will appear here for verification.
                     </p>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2.5">
                     {incomingRequests.map((req) => {
                       const senderName = req.sender?.displayName || req.sender?.username || "User";
                       const senderUsername = req.sender?.username || String(req.senderId);
                       return (
                         <div
                           key={req.id}
-                          className="bg-secondary/40 border border-border/80 rounded-xl p-3.5 flex items-center justify-between gap-3"
+                          className="bg-secondary/40 border border-border/80 rounded-xl p-4 flex items-center justify-between gap-3.5"
                         >
-                          <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center gap-3.5 min-w-0">
                             <Avatar
                               fallback={senderName}
                               size="md"
                             />
                             <div className="flex flex-col min-w-0">
-                              <span className="text-sm font-semibold text-foreground truncate">
+                              <span className="text-base font-semibold text-foreground truncate">
                                 {senderName}
                               </span>
-                              <span className="text-xs text-muted-foreground font-mono truncate">
+                              <span className="text-sm text-muted-foreground font-mono truncate">
                                 @{senderUsername}
                               </span>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-2.5 shrink-0">
                             <Button
                               variant="primary"
                               size="sm"
@@ -377,36 +397,36 @@ export default function FriendsList() {
               <div className="flex flex-col gap-2 flex-1">
                 {outgoingRequests.length === 0 ? (
                   <div className="flex flex-col items-center justify-center flex-1 text-center py-16">
-                    <div className="w-14 h-14 rounded-2xl bg-secondary border border-border flex items-center justify-center text-muted-foreground mb-4 shadow-sm">
-                      <Users className="w-6 h-6 text-muted-foreground" />
+                    <div className="w-16 h-16 rounded-2xl bg-secondary border border-border flex items-center justify-center text-muted-foreground mb-4 shadow-sm">
+                      <Users className="w-7 h-7 text-muted-foreground" />
                     </div>
-                    <h3 className="text-foreground font-semibold text-base">
+                    <h3 className="text-foreground font-bold text-lg">
                       No outgoing requests
                     </h3>
-                    <p className="text-muted-foreground text-xs mt-1.5 max-w-xs">
+                    <p className="text-muted-foreground text-sm mt-1.5 max-w-sm">
                       You haven&apos;t sent any pending friend requests. Use the Add Friend button to connect with friends.
                     </p>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2.5">
                     {outgoingRequests.map((req) => {
                       const receiverName = req.receiver?.displayName || req.receiver?.username || "User";
                       const receiverUsername = req.receiver?.username || String(req.receiverId);
                       return (
                         <div
                           key={req.id}
-                          className="bg-secondary/40 border border-border/80 rounded-xl p-3.5 flex items-center justify-between gap-3"
+                          className="bg-secondary/40 border border-border/80 rounded-xl p-4 flex items-center justify-between gap-3.5"
                         >
-                          <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center gap-3.5 min-w-0">
                             <Avatar
                               fallback={receiverName}
                               size="md"
                             />
                             <div className="flex flex-col min-w-0">
-                              <span className="text-sm font-semibold text-foreground truncate">
+                              <span className="text-base font-semibold text-foreground truncate">
                                 {receiverName}
                               </span>
-                              <span className="text-xs text-muted-foreground font-mono truncate">
+                              <span className="text-sm text-muted-foreground font-mono truncate">
                                 @{receiverUsername}
                               </span>
                             </div>
@@ -418,7 +438,7 @@ export default function FriendsList() {
                             onClick={() => handleStatusUpdate(req.id, "cancelled")}
                             disabled={processingActionId === req.id}
                             isLoading={processingActionId === req.id}
-                            icon={<X className="w-3.5 h-3.5" />}
+                            icon={<X className="w-4 h-4" />}
                           >
                             Cancel Request
                           </Button>
