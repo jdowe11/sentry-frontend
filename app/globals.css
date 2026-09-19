@@ -85,10 +85,20 @@
   --color-sentry-text-link: #10b981;
 }
 
-/* Custom modern scrollbars */
+/* Custom Modern Auto-Hiding Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.2s ease;
+}
+
+*:hover {
+  scrollbar-color: rgba(55, 65, 81, 0.6) transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -96,12 +106,26 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #202734;
+  background: transparent;
   border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.6);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a3446;
+  background: var(--primary) !important;
+}
+
+/* Utility to completely hide scrollbars where needed */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 body {
