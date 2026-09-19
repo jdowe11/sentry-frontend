@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "@/store/slices/authSlice";
 import friendsReducer from "@/store/slices/friendsSlice";
 import uiReducer from "@/store/slices/uiSlice";
+import chatReducer from "@/store/slices/chatSlice";
 
 export const makeStore = () => {
   return configureStore({
@@ -9,6 +10,7 @@ export const makeStore = () => {
       auth: authReducer,
       friends: friendsReducer,
       ui: uiReducer,
+      chat: chatReducer,
     },
     devTools: process.env.NODE_ENV !== "production",
   });
